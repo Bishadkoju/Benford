@@ -1,0 +1,163 @@
+<html>
+
+<head>
+    <title>
+        Benford
+    </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+    <style>
+        form {
+            display: 'flex';
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 5px;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .disp {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            margin: 5px;
+        }
+        .input, .output {
+            display: flex;
+        }
+
+        .vertical {
+            background-color: rgb(201, 195, 195);
+            width: 2px
+        }
+
+        .content {
+            border: solid;
+            border-width: 2px;
+            padding: 20px;
+        }
+
+        #csv_picker {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Brendford Number Check</h1>
+        <div class="content">
+            <buton id="file-button" class="btn btn-primary">Select CSV File</buton>
+            <hr />
+            <div class="disp">
+                <div class="input">
+                    <form id="form" enctype="multipart/form-data">
+                        <input type="file" name="csv" id="csv_picker" accept=".csv">
+
+                        <br />
+                        <label id='filename' for="csv_preview">Filename</label><br />
+
+                        <textarea id="csv_preview" name="csv_preview" rows="10" cols="50"
+                            disabled>File Content</textarea>
+                        <br />
+                        <br />
+                        <buton id="check" class="btn btn-success">Check</buton>
+                    </form>
+                </div>
+                <div class="output">
+                    <h4 id="result">True</h4>
+                    <br />
+                    <div><canvas id="myChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('check').addEventListener('click', checkBenford)
+        document.getElementById('csv_picker').addEventListener('input', displayCSV)
+        document.getElementById('file-button').addEventListener('click', () => document.getElementById('csv_picker').click())
+
+        function displayCSV(e) {
+            e.preventDefault()
+            file = document.getElementById('csv_picker').files[0]
+            document.getElementById('filename').innerText = file.name;
+            console.log('hello')
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                document.getElementById('csv_preview').value = text
+            }
+            reader.readAsText(file)
+        };
+
+        async function checkBenford(e) {
+            e.preventDefault()
+            const form = document.getElementById('form');
+            const formData = new FormData(form)
+            try {
+                const res = await fetch('http://127.0.0.1:8000/benford', {
+                    method: 'POST',
+                    body: formData
+                })
+                const response = await res.json()
+                const { is_brenford, actual_frequency, expected_frequency } = response
+                document.getElementById('result').innerText = String(is_brenford);
+                updateChart(expected_frequency, actual_frequency)
+                console.log(response)
+            } catch (e) {
+                console.log(e)
+                alert("File Content Invalid")
+            }
+            console.log('check')
+        }
+        var ctx = document.getElementById("myChart").getContext('2d');
+
+
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+                datasets: [{
+                    label: 'Expected Frequency',
+                    data: [0.301, 0.176, 0.125,
+                          0.097, 0.079, 0.067, 0.058, 0.051, 0.046],
+                    fill: true,
+                    borderColor: '#ff0000',
+                    backgroundColor: 'rgba(256,0,0,0.5)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Actual Frequency',
+                    data: [0.321, 0.186, 0.125,
+                          0.087, 0.075, 0.065, 0.062, 0.051, 0.046],
+                    fill: true,
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(0,256,0,0.5)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Add to prevent default behaviour of full-width/height 
+            }
+        });
+
+        function updateChart(expected, actual) {
+            data = [expected, actual]
+            myChart.data.datasets.forEach((dataset, i) => {
+                dataset.data =data[i]
+            })
+            myChart.update()
+        }
+    </script>
+</body>
+
+</html>
