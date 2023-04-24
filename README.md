@@ -26,6 +26,11 @@ This is a simple web application that checks if a given CSV file follows [Benfor
 5. If the calculated frequencies are within 2% of the expected frequencies for all digits, the set of numbers satisfies Benford's law.
 6. The server returns a JSON response indicating whether the set of numbers satisfies Benford's law and the calculated and expected frequencies.
 
+
+## Screenshots
+![Screenshot](1.png)
+![Screenshot](2.png)
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
